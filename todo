@@ -1,0 +1,4 @@
+todo :
+- module socket ( recyclage des module deja écrit sur ce github)
+- ajouter la possibilité d'executer du code sur des process distant / d'executer du code compilée chargé en RAM
+- chercher des vecteurs de transmission et de duplication du programme
