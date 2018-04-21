@@ -1,16 +1,25 @@
 #include <iostream>
-#include "crypto.h"
+#include <windows.h>
+#include <strsafe.h>
+#include "debuger.h"
+
+
+DWORD addr = 0xa06ffcb4;
+
 
 int main(int argc, char** argv)
 {
-	char str1[] = "Hello world !";
-	char str2[sizeof(str1)];
-	crypto::XOR test(static_cast<const void*>("test"), 4);
-	test.encrypt(str1, str2, sizeof(str1));
-	test.decrypt(str2, str1, sizeof(str1));
-
-	std::cout << str1 << std::endl;
-	std::cin.ignore().get();
+	utils::Debuguer debug;
+	if (!debug.attach(L"test_apps.exe"))
+	{
+		return -1;
+	}
+	int readedVal = debug.read<int>(addr);
+	std::cout << "Readed val : " << readedVal << std::endl;
+	int newVal;
+	std::cout << "Enter new val : ";
+	std::cin >> newVal;
+	debug.write<int>(addr, newVal);
 
 	return 0;
 }

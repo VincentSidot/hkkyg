@@ -1,37 +1,47 @@
 #pragma once
 #include <Windows.h>
+#include <strsafe.h>
 #include <TlHelp32.h>
 #include <vector>
 
+#define DEBUG
+
 namespace utils {
 
-	PROCESSENTRY32W getProcess(WCHAR* const name);
+	PROCESSENTRY32W getProcess(LPCWSTR name);
 	std::vector<PROCESSENTRY32W> getAllProcess();
-	DWORD getPid(WCHAR* const name);
+	DWORD getPid(LPCWSTR name);
+	void ErrorExit(LPCTSTR lpszFunction, bool exit = true);
 	
 	class Debuguer
 	{
 	public:
-		bool attach(LPWSTR name);
+		bool attach(const LPCWSTR name);
 		~Debuguer();
 
 		template<typename T>
-		T read(DWORD addr)
+		T read(DWORD addr,DWORD* ret = NULL) //ret = 0 if not okay
 		{
 			T rep;
-			ReadProcessMemory(hProcess, (PVOID)addr, &rep, sizeof(T), NULL);
+			DWORD _ret = this->read(addr, (PBYTE)&rep, sizeof(rep));
+			if (ret != NULL)
+			{
+				*ret = _ret;
+			}
 			return rep;
 		}
 
 		template<typename T>
-		void write(DWORD addr, T val)
+		DWORD write(DWORD addr, T val) //return 0 if not okay
 		{
-			WriteProcessMemory(hProcess, (PVOID)addr, &val, sizof(T), NULL)
+			return this->write(addr, (PBYTE)&val, sizeof(val));
 		}
 
-		void read(DWORD addr, PBYTE buffer, DWORD buffsize);
-		void write(DWORD addr, PBYTE const buffer, DWORD buffsize);
-		void write(DWORD addr, char* const buffer, DWORD buffsize);
+		DWORD read(DWORD addr, PBYTE buffer, DWORD buffsize); //return 0 if not okay
+		DWORD write(DWORD addr, PBYTE const buffer, DWORD buffsize); //return 0 if not okay
+		DWORD write(DWORD addr, char* const buffer, DWORD buffsize); //return 0 if not okay
+
+		DWORD getPid() const;
 
 	private:
 		DWORD pid;
