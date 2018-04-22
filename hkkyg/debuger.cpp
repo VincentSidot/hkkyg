@@ -81,7 +81,7 @@ bool utils::Debuguer::attach(LPCWSTR name)
 	if (pid == 0)
 		return false;
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
-	if (hProcess == INVALID_HANDLE_VALUE)
+	if (hProcess == NULL)
 	{
 #ifdef	DEBUG
 		ErrorExit("utils::Debuger::attach::OpenProcess");
@@ -98,7 +98,7 @@ utils::Debuguer::~Debuguer()
 
 DWORD utils::Debuguer::read(DWORD addr, PBYTE buffer, DWORD buffsize)
 {
-	DWORD oldProtect;
+	DWORD oldProtect,trash;
 	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, PAGE_READWRITE, &oldProtect) == 0)
 	{
 #ifdef	DEBUG
@@ -113,7 +113,7 @@ DWORD utils::Debuguer::read(DWORD addr, PBYTE buffer, DWORD buffsize)
 #endif
 		return 0;
 	}
-	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, oldProtect, NULL) == 0)
+	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, oldProtect, &trash) == 0)
 	{
 #ifdef	DEBUG
 		ErrorExit("utils::Debuger::read::VirtualProtectEx");
@@ -124,7 +124,7 @@ DWORD utils::Debuguer::read(DWORD addr, PBYTE buffer, DWORD buffsize)
 
 DWORD utils::Debuguer::write(DWORD addr, PBYTE const buffer, DWORD buffsize)
 {
-	DWORD oldProtect;
+	DWORD oldProtect, trash;
 	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, PAGE_READWRITE, &oldProtect) == 0)
 	{
 #ifdef	DEBUG
@@ -139,7 +139,7 @@ DWORD utils::Debuguer::write(DWORD addr, PBYTE const buffer, DWORD buffsize)
 #endif
 		return 0;
 	}
-	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, oldProtect, NULL) == 0)
+	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, oldProtect, &trash) == 0)
 	{
 #ifdef	DEBUG
 		ErrorExit("utils::Debuger::write::VirtualProtectEx");
@@ -150,7 +150,7 @@ DWORD utils::Debuguer::write(DWORD addr, PBYTE const buffer, DWORD buffsize)
 
 DWORD utils::Debuguer::write(DWORD addr, char * const buffer, DWORD buffsize)
 {
-	DWORD oldProtect;
+	DWORD oldProtect, trash;
 	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, PAGE_READWRITE, &oldProtect) == 0)
 	{
 #ifdef	DEBUG
@@ -165,7 +165,7 @@ DWORD utils::Debuguer::write(DWORD addr, char * const buffer, DWORD buffsize)
 #endif
 		return 0;
 	}
-	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, oldProtect, NULL) == 0)
+	if (VirtualProtectEx(hProcess, (PVOID)addr, buffsize, oldProtect, &trash) == 0)
 	{
 #ifdef	DEBUG
 		ErrorExit("utils::Debuger::write::VirtualProtectEx");
