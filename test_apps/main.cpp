@@ -13,5 +13,6 @@ int main(int argc, char** argv)
 		printf("%d\n", *test);
 		Sleep(100);
 	}
+	delete test;
 	return 0;
 }

@@ -75,6 +75,18 @@ void utils::ErrorExit(LPCTSTR lpszFunction, bool exit)
 		ExitProcess(dw);
 }
 
+size_t utils::rawDataToHex(LPCVOID rawdata, size_t datalen, char ** str)
+{
+	size_t len = datalen * 5 -1 ; // "0xab" with a space so 5char for one data byte, except for the last.
+	*str = (char*)malloc(len+1);
+	sprintf_s(*str, len, "0x%x", *((PBYTE)rawdata));
+	for (size_t i = 1; i < datalen; i++)
+	{
+		sprintf_s(*str, len+1, "%s 0x%x", *str,*((PBYTE)rawdata + i));
+	}
+	return len;
+}
+
 bool utils::Debuguer::attach(LPCWSTR name)
 {
 	pid = utils::getPid(name);
@@ -91,9 +103,27 @@ bool utils::Debuguer::attach(LPCWSTR name)
 	return true;
 }
 
+bool utils::Debuguer::attach(DWORD pid)
+{
+	hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
+	if (hProcess == NULL)
+	{
+#ifdef	DEBUG
+		ErrorExit("utils::Debuger::attach::OpenProcess");
+#endif
+		return false;
+	}
+	return true;
+}
+
 utils::Debuguer::~Debuguer()
 {
 	CloseHandle(hProcess);
+}
+
+HANDLE utils::Debuguer::getProcess() const
+{
+	return hProcess;
 }
 
 DWORD utils::Debuguer::read(DWORD addr, PBYTE buffer, DWORD buffsize)
@@ -177,4 +207,22 @@ DWORD utils::Debuguer::write(DWORD addr, char * const buffer, DWORD buffsize)
 DWORD utils::Debuguer::getPid() const
 {
 	return pid;
+}
+
+int utils::privileges() {
+	HANDLE Token;
+	TOKEN_PRIVILEGES tp;
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &Token))
+	{
+		LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &tp.Privileges[0].Luid);
+		tp.PrivilegeCount = 1;
+		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+		if (AdjustTokenPrivileges(Token, 0, &tp, sizeof(tp), NULL, NULL) == 0) {
+			return 1; //FAIL
+		}
+		else {
+			return 0; //SUCCESS
+		}
+	}
+	return 1;
 }

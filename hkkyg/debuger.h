@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <strsafe.h>
 #include <TlHelp32.h>
+#include <cstdio>
+#include <cstdlib>
 #include <vector>
 
 #define DEBUG
@@ -12,11 +14,13 @@ namespace utils {
 	std::vector<PROCESSENTRY32W> getAllProcess();
 	DWORD getPid(LPCWSTR name);
 	void ErrorExit(LPCTSTR lpszFunction, bool exit = true);
-	
+	size_t rawDataToHex(LPCVOID rawdata, size_t datalen, char** str); // return size of str, auto allocate str you must free it after use.
+	int privileges();
 	class Debuguer
 	{
 	public:
 		bool attach(const LPCWSTR name);
+		bool attach(DWORD pid);
 		~Debuguer();
 
 		template<typename T>
@@ -37,6 +41,7 @@ namespace utils {
 			return this->write(addr, (PBYTE)&val, sizeof(val));
 		}
 
+		HANDLE getProcess() const;
 		DWORD read(DWORD addr, PBYTE buffer, DWORD buffsize); //return 0 if not okay
 		DWORD write(DWORD addr, PBYTE const buffer, DWORD buffsize); //return 0 if not okay
 		DWORD write(DWORD addr, char* const buffer, DWORD buffsize); //return 0 if not okay
