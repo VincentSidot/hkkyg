@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <strsafe.h>
 #include <TlHelp32.h>
+#include <string>
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
@@ -16,6 +17,8 @@ namespace utils {
 	void ErrorExit(LPCTSTR lpszFunction, bool exit = true);
 	size_t rawDataToHex(LPCVOID rawdata, size_t datalen, char** str); // return size of str, auto allocate str you must free it after use.
 	int privileges();
+	bool inject(DWORD PID, std::string dllPath);
+	DWORD manual_inject(DWORD PID, std::string dllPath);
 	class Debuguer
 	{
 	public:

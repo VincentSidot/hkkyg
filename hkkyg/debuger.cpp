@@ -226,3 +226,51 @@ int utils::privileges() {
 	}
 	return 1;
 }
+
+bool utils::inject(DWORD PID, std::string dllPath)
+{
+	HANDLE hProcess = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, NULL, PID);
+	if (hProcess == INVALID_HANDLE_VALUE || hProcess == NULL)
+	{
+#ifdef DEBUG
+		utils::ErrorExit("utils::inject::OpenProcess");
+#endif // DEBUG
+		return false;
+	}
+	LPVOID kernel32addr = (LPVOID)GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryA");
+	LPVOID alloc = VirtualAllocEx(hProcess, NULL, dllPath.length() + 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	if (alloc == NULL)
+	{
+#ifdef DEBUG
+		utils::ErrorExit("utils::inject::VirtualAllocEx");
+#endif // DEBUG
+		return false;
+	}
+	if (WriteProcessMemory(hProcess, alloc, dllPath.c_str(), dllPath.length() + 1, NULL) == 0)
+	{
+#ifdef DEBUG
+		utils::ErrorExit("utils::inject::WriteProcessMemory");
+#endif // DEBUG
+		return false;
+	}
+	DWORD threadId;
+	HANDLE hThread = CreateRemoteThread(hProcess, NULL, NULL, (LPTHREAD_START_ROUTINE)kernel32addr, alloc, 0, &threadId);
+	if (hThread == NULL)
+	{
+#ifdef DEBUG
+		utils::ErrorExit("utils::inject::CreateRemoteThread");
+#endif // DEBUG
+		return false;
+	}
+	WaitForSingleObject(hThread, INFINITE);
+	VirtualFreeEx(hProcess, alloc, dllPath.length() + 1, MEM_RELEASE);
+	CloseHandle(hProcess);
+	CloseHandle(hThread);
+	return true;
+}
+
+DWORD utils::manual_inject(DWORD PID, std::string dllPath)
+{
+
+}
+
